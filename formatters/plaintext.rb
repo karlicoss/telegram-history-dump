@@ -11,9 +11,11 @@ class PlaintextFormatter < DailyFileFormatter
 
     line = case message['event'].downcase
       when 'message'
-        fwd_from_name = get_full_name(message['fwd_from'])
-        if !fwd_from_name.empty?
-          from_name += ' (forwarded from %s)' % fwd_from_name
+        if message['fwd_from']
+          fwd_from_name = get_full_name(message['fwd_from'])
+          if !fwd_from_name.empty?
+            from_name += ' (forwarded from %s)' % fwd_from_name
+          end
         elsif message['reply_id']
           reply_target = find_earlier_message(message['reply_id'])
           if reply_target
@@ -49,10 +51,10 @@ class PlaintextFormatter < DailyFileFormatter
         end
 
       when 'service'
-        user = message['action']['user']
-        user_name = get_full_name(user)
         case message['action']['type'].downcase
           when 'chat_add_user'
+            user = message['action']['user']
+            user_name = get_full_name(user)
             if message['from']['peer_id'] == user['peer_id'] ||
                !message['from']['peer_id']
               "#{user_name} joined"
@@ -62,6 +64,8 @@ class PlaintextFormatter < DailyFileFormatter
           when 'chat_add_user_link'
             "#{from_name} joined with an invite link"
           when 'chat_del_user'
+            user = message['action']['user']
+            user_name = get_full_name(user)
             if message['from']['peer_id'] == user['peer_id'] ||
                !message['from']['peer_id']
               "#{user_name} left"
